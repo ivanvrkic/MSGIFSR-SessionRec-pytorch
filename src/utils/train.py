@@ -114,7 +114,7 @@ class TrainRunner:
       self.scheduler.step()
       mrr, hit = evaluate(self.model, self.test_loader, self.device)
 
-      savepath = "/content/drive/MyDrive/colab/recsys_epoch_{self.epoch}mrr_{mrr:.3f}hit_{hit:.3f}.model"
+      savepath = f"/content/drive/MyDrive/colab/recsys_epoch_{self.epoch}mrr_{mrr:.3f}hit_{hit:.3f}.model"
       # wandb.log({"hit": hit, "mrr": mrr})
 
       print(f'Saving to {savepath}')
