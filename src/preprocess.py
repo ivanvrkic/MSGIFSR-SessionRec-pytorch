@@ -9,7 +9,7 @@ required = parser.add_argument_group('required arguments')
 required.add_argument(
     '-d',
     '--dataset',
-    choices=['diginetica', 'gowalla', 'lastfm'],
+    choices=['diginetica', 'gowalla', 'lastfm','dressipy'],
     required=True,
     help='the dataset name',
 )
@@ -24,7 +24,7 @@ required.add_argument(
 optional.add_argument(
     '-t',
     '--dataset-dir',
-    default='datasets/{dataset}',
+    default='../datasets/{dataset}_new',
     help='the folder to save the preprocessed dataset',
 )
 parser._action_groups.append(optional)
@@ -32,10 +32,16 @@ args = parser.parse_args()
 
 dataset_dir = Path(args.dataset_dir.format(dataset=args.dataset))
 
-if args.dataset == 'diginetica':
+if args.dataset == 'dressipy':
+    from utils.data.preprocess import preprocess_dressipy
+
+    preprocess_dressipy(dataset_dir)
+
+elif args.dataset == 'diginetica':
     from utils.data.preprocess import preprocess_diginetica
 
     preprocess_diginetica(dataset_dir, args.filepath)
+
 else:
     from pandas import Timedelta
     from utils.data.preprocess import preprocess_gowalla_lastfm

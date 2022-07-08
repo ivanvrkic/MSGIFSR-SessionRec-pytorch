@@ -129,7 +129,7 @@ from src.models import MSGIFSR
 
 device = th.device('cuda' if th.cuda.is_available() else 'cpu')
 dataset_dir = Path(args.dataset_dir)
-print('reading dataset')
+print('reading dataset '+args.dataset_dir)
 train_sessions, test_sessions, num_items = read_dataset(dataset_dir)
 # num_items += 5
 

@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import numpy as np
 
@@ -109,32 +111,45 @@ def save_sessions(df, filepath):
 
 def save_dataset(dataset_dir, df_train, df_test):
     # filter items in test but not in train
-    df_test = df_test[df_test.itemId.isin(df_train.itemId.unique())]
-    df_test = filter_short_sessions(df_test)
 
-    print(f'No. of Clicks: {len(df_train) + len(df_test)}')
-    print(f'No. of Items: {df_train.itemId.nunique()}')
+    if df_test is not None and df_train is not None:
+        df_test = df_test[df_test.itemId.isin(df_train.itemId.unique())]
+        df_test = filter_short_sessions(df_test)
 
-    # update itemId
-    train_itemId_new, uniques = pd.factorize(df_train.itemId)
-    df_train = df_train.assign(itemId=train_itemId_new)
-    oid2nid = {oid: i for i, oid in enumerate(uniques)}
-    test_itemId_new = df_test.itemId.map(oid2nid)
-    df_test = df_test.assign(itemId=test_itemId_new)
+        print(f'No. of Clicks: {len(df_train) + len(df_test)}')
+        print(f'No. of Items: {df_train.itemId.nunique()}')
 
-    print(f'saving dataset to {dataset_dir}')
-    dataset_dir.mkdir(parents=True, exist_ok=True)
-    save_sessions(df_train, dataset_dir / 'train.txt')
-    save_sessions(df_test, dataset_dir / 'test.txt')
-    num_items = len(uniques)
-    with open(dataset_dir / 'num_items.txt', 'w') as f:
-        f.write(str(num_items))
+        # update itemId
+        train_itemId_new, uniques = pd.factorize(df_train.itemId)
+        df_train = df_train.assign(itemId=train_itemId_new)
+        oid2nid = {oid: i for i, oid in enumerate(uniques)}
+        test_itemId_new = df_test.itemId.map(oid2nid)
+        df_test = df_test.assign(itemId=test_itemId_new)
 
+        print(f'saving dataset to {dataset_dir}')
+        dataset_dir.mkdir(parents=True, exist_ok=True)
+        save_sessions(df_train, dataset_dir / 'train.txt')
+        save_sessions(df_test, dataset_dir / 'test.txt')
+        num_items = len(uniques)
+        with open(dataset_dir / 'num_items.txt', 'w') as f:
+            f.write(str(num_items))
+    elif df_test is None:
+        train_itemId_new, uniques = pd.factorize(df_train.itemId)
+        df_train = df_train.assign(itemId=train_itemId_new)
+
+        print(f'saving dataset to {dataset_dir}')
+        dataset_dir.mkdir(parents=True, exist_ok=True)
+        save_sessions(df_train, dataset_dir / 'train_single.txt')
+        num_items = len(uniques)
+        with open(dataset_dir / 'num_items_single.txt', 'w') as f:
+            f.write(str(num_items))
+    elif df_train is None:
+        pass
 
 def preprocess_diginetica(dataset_dir, csv_file):
     print(f'reading {csv_file}...')
     df = pd.read_csv(
-        csv_file,
+        '../datasets/diginetica/'+csv_file,
         usecols=[0, 2, 3, 4],
         delimiter=';',
         parse_dates=['eventdate'],
@@ -154,6 +169,54 @@ def preprocess_diginetica(dataset_dir, csv_file):
     df_train, df_test = split_by_time(df, pd.Timedelta(days=7))
     save_dataset(dataset_dir, df_train, df_test)
 
+def preprocess_dressipy(dataset_dir,train_for_leaderboard=False):
+
+    print('creating training dataset')
+    df_s = pd.read_csv(
+        '../datasets/dressipy/train_sessions.csv',
+        delimiter=',',
+        parse_dates=['date'],
+        infer_datetime_format=True,
+    )
+    df_p = pd.read_csv(
+        '../datasets/dressipy/train_purchases.csv',
+        delimiter=',',
+        parse_dates=['date'],
+        infer_datetime_format=True,
+    )
+    print('df_purchases.shape,df_views(sessions).shape:',df_p.shape,df_s.shape)
+    df = pd.concat([df_s, df_p])
+    print('size after merge ',df.shape)
+    df.columns = ['sessionId', 'itemId', 'timestamp']
+    # df = df.drop(['eventdate', 'timeframe'], 1)
+    df = df.sort_values(['sessionId', 'timestamp'])
+
+    df = filter_short_sessions(df)
+    df = truncate_long_sessions(df, is_sorted=True)
+    df = filter_infreq_items(df)
+    df = filter_short_sessions(df)
+
+    if train_for_leaderboard:
+        df_train = df
+        print('creating test dataset')
+        df = pd.read_csv(
+            '../datasets/dressipy/test_final_sessions.csv',
+            delimiter=',',
+            parse_dates=['date'],
+            infer_datetime_format=True,
+        )
+        df.columns = ['sessionId', 'itemId', 'timestamp']
+        df = df.sort_values(['sessionId', 'timestamp'])
+
+        df = filter_short_sessions(df)
+        df = truncate_long_sessions(df, is_sorted=True)
+        df = filter_infreq_items(df)
+        df = filter_short_sessions(df)
+        df_test = df
+    else:
+        df_train, df_test = split_by_time(df, pd.Timedelta(days=30))
+    print('df_train.shape, df_test.shape:', df_train.shape, df_test.shape)
+    save_dataset(dataset_dir, df_train, df_test)
 
 def preprocess_gowalla_lastfm(dataset_dir, csv_file, usecols, interval, n):
     print(f'reading {csv_file}...')
