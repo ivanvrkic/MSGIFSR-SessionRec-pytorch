@@ -25,12 +25,11 @@ def fix_weight_decay(model):
 
 
 def prepare_batch(batch, device):
-  inputs, labels = batch
+  seqs, inputs, labels = batch
   # inputs, labels = batch
   inputs_gpu = [x.to(device) for x in inputs]
   labels_gpu = labels.to(device)
-
-  return inputs_gpu, labels_gpu
+  return seqs, inputs_gpu, labels_gpu
   # return inputs_gpu, 0, labels_gpu, 0
 
 

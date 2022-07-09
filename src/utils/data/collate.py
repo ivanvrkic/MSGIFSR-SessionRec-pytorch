@@ -251,7 +251,7 @@ def collate_fn_factory_ccs(seq_to_graph_fns, order):
 
         labels = th.LongTensor(labels)
 
-        return inputs, labels
+        return seqs, inputs, labels
 
     return collate_fn
 
