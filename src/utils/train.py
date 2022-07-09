@@ -94,7 +94,7 @@ class TrainRunner:
     for epoch in tqdm(range(epochs)):
       self.model.train()
       for batch in self.train_loader:
-        inputs, labels = prepare_batch(batch, self.device)
+        seqs, inputs, labels = prepare_batch(batch, self.device)
         self.optimizer.zero_grad()
         scores = self.model(*inputs)
         assert not th.isnan(scores).any()

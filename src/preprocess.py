@@ -9,13 +9,13 @@ required = parser.add_argument_group('required arguments')
 optional.add_argument(
     '-t',
     '--dataset-dir',
-    default='../datasets/{dataset}_new',
+    default='../datasets/dressipy',
     help='the folder to save the preprocessed dataset',
 )
 parser._action_groups.append(optional)
 args = parser.parse_args()
 
-dataset_dir = Path(args.dataset_dir.format(dataset=args.dataset))
+dataset_dir = Path(args.dataset_dir)
 
 from utils.data.preprocess import preprocess_dressipy
 
