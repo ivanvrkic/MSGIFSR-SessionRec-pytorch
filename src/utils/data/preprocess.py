@@ -172,14 +172,16 @@ def preprocess_diginetica(dataset_dir, csv_file):
 def preprocess_dressipy(dataset_dir,train_for_leaderboard=False):
 
     print('creating training dataset')
+    if dataset_dir[-1]=="/":
+        dataset_dir=dataset_dir[:-1]
     df_s = pd.read_csv(
-        '../datasets/dressipy/train_sessions.csv',
+        f'{dataset_dir}/train_sessions.csv',
         delimiter=',',
         parse_dates=['date'],
         infer_datetime_format=True,
     )
     df_p = pd.read_csv(
-        '../datasets/dressipy/train_purchases.csv',
+        f'{dataset_dir}/train_purchases.csv',
         delimiter=',',
         parse_dates=['date'],
         infer_datetime_format=True,
@@ -200,7 +202,7 @@ def preprocess_dressipy(dataset_dir,train_for_leaderboard=False):
         df_train = df
         print('creating test dataset')
         df = pd.read_csv(
-            '../datasets/dressipy/test_final_sessions.csv',
+            f'{dataset_dir}/test_final_sessions.csv',
             delimiter=',',
             parse_dates=['date'],
             infer_datetime_format=True,
