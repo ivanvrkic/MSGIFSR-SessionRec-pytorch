@@ -41,7 +41,7 @@ def evaluate(model, data_loader, device, cutoff=20):
 
   with th.no_grad():
     for batch in data_loader:
-      inputs, labels = prepare_batch(batch, device)
+      seqs, inputs, labels = prepare_batch(batch, device)
       logits = model(*inputs)
 
       batch_size = logits.size(0)
