@@ -217,7 +217,7 @@ def preprocess_dressipy(dataset_dir,train_for_leaderboard=False):
         df = filter_short_sessions(df)
         df_test = df
     else:
-        df_train, df_test = split_by_time(df, pd.Timedelta(days=30))
+        df_train, df_test = split_by_time(df, pd.Timedelta(days=7))
     print('df_train.shape, df_test.shape:', df_train.shape, df_test.shape)
     save_dataset(dataset_dir, df_train, df_test)
 
